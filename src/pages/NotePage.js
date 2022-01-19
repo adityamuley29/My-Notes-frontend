@@ -2,15 +2,19 @@ import React, { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import { ReactComponent as ArrowLeft } from "../assets/arrow-left.svg";
 import { useNavigate } from "react-router-dom";
+import { useToasts } from "react-toast-notifications";
 
 const NotePage = () => {
   const { id } = useParams();
   const history = useNavigate();
   const [note, setNote] = useState([]);
+  const { addToast } = useToasts();
 
   useEffect(() => {
     getNote();
   }, [id]);
+
+  
 
   let getNote = async () => {
     if (id === "new") return;
@@ -21,13 +25,17 @@ const NotePage = () => {
   };
 
   let createNote = async () => {
-    fetch(`/api/notes/`, {
+   fetch(`/api/notes/`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
       },
       body: JSON.stringify(note),
-    });
+    })
+    addToast("Note added. 👍",{
+      appearance:"success",
+      autoDismiss:true
+    })
   };
 
   let updateNote = async () => {
@@ -38,6 +46,10 @@ const NotePage = () => {
       },
       body: JSON.stringify(note),
     });
+    addToast("Note Updated. 👍 ",{
+      appearance:"info",
+      autoDismiss:true
+    })
   };
   let deleteNote = async () => {
     fetch(`/api/notes/${id}/`, {
@@ -47,8 +59,11 @@ const NotePage = () => {
       },
       // body: JSON.stringify(note),
     });
-    history('/');
-    
+    history("/");
+    addToast("Note Deleted. 👍 ",{
+      appearance:"info",
+      autoDismiss:true
+    })
   };
 
   let handleSubmit = () => {

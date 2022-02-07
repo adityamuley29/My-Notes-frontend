@@ -1,12 +1,24 @@
-import React, { useState } from "react";
+import React, { Fragment, useContext, useState } from "react";
 import { useDispatch } from "react-redux";
 import { darkMode, lightMode } from "../actions/index";
-import {  useToasts } from "react-toast-notifications";
+import { useToasts } from "react-toast-notifications";
+import { Link, useParams } from "react-router-dom";
+import AuthContext from "../context/AuthContext";
+import jwtDecode from "jwt-decode";
+import DarkModeButton from "./DarkModeButton";
+import { useSelector } from "react-redux";
 
 const Navbar = (props) => {
-  const [toggle, setToggle] = useState(false);
+  const myState = useSelector((state) => state.toggleMode);
+  const [toggle, setToggle] = useState(myState);
   const dispatched = useDispatch();
   const { addToast } = useToasts();
+  const { user, logoutUser } = useContext(AuthContext);
+  
+
+  const currentPath = window.location.pathname;
+
+ 
 
   const triggerToggle = () => {
     setToggle(!toggle);
@@ -18,7 +30,7 @@ const Navbar = (props) => {
       dispatched(darkMode());
       addToast("Dark Mode enabled 🥳", {
         appearance: "success",
-        autoDismiss:true
+        autoDismiss: true,
       });
     } else {
       dispatched(lightMode());
@@ -31,29 +43,40 @@ const Navbar = (props) => {
 
   return (
     <div className="navbar">
-      <h1>My Notes</h1>
+      <h1>
+        <Link to={"/"}>My Notes</Link>
+      </h1>
 
       {/* dark mode button start here */}
+      <div className="navbar-buttons">
+        <DarkModeButton triggerToggle={triggerToggle} toggle={toggle} />
 
-      <div
-        onClick={triggerToggle}
-        className={`wrg-toggle ${toggle ? "wrg-toggle--checked" : ""}`}
-      >
-        <div className="wrg-toggle-container">
-          <div className="wrg-toggle-check">
-            <span>🌜</span>
+        {user ? (
+          <Fragment>
+            <div className="auth-button">
+              <h3>Hello, {user.name}</h3>
+            </div>
+            <div className="auth-button">
+              <h3>
+                <Link to={"/"} onClick={logoutUser}>
+                  Logout
+                </Link>
+              </h3>
+            </div>
+          </Fragment>
+        ) : currentPath === "/login" ? (
+          <div className="auth-button">
+            <h3>
+              <Link to={"/register"}>Register</Link>
+            </h3>
           </div>
-
-          <div className="wrg-toggle-uncheck">
-            <span>🌞</span>
+        ) : (
+          <div className="auth-button">
+            <h3>
+              <Link to={"/login"}>login</Link>
+            </h3>
           </div>
-        </div>
-        <div className="wrg-toggle-circle"></div>
-        <input
-          className="wrg-toggle-input"
-          type="checkbox"
-          aria-label="Toggle Button"
-        />
+        )}
       </div>
     </div>
   );

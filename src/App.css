@@ -78,6 +78,9 @@ a {
 .navbar-buttons .auth-button{
   margin-left: 20px;
 }
+#logoutbtn{
+  color:var(--color-text);
+}
 .navbar h1{
   font-size: 20px;
   color: var(--color-text);
@@ -249,7 +252,7 @@ a {
 .notes-list {
   padding: 0;
   margin: 16px 0;
-  height: 70vh;
+  min-height: 70vh;
   overflow-y: auto;
   scrollbar-width: none; /* Firefox */
 }
@@ -398,4 +401,14 @@ a {
 #formTitle{
   font-size: 30px;
   margin-bottom: 10px;
+}
+
+.spinner-container{
+  height: 60vh;
+  
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto;
+
 }

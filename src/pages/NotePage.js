@@ -4,12 +4,12 @@ import { ReactComponent as ArrowLeft } from "../assets/arrow-left.svg";
 import { useNavigate } from "react-router-dom";
 import { useToasts } from "react-toast-notifications";
 import AuthContext from "../context/AuthContext";
-import jwtDecode from "jwt-decode";
+
 
 const INITIAL_DATA = {
-  "body":"",
-  "createdBy": ""
-}
+  title: "",
+  createdOn: "",
+};
 
 const NotePage = () => {
   const { id } = useParams();
@@ -18,25 +18,28 @@ const NotePage = () => {
   const { addToast } = useToasts();
   const { user } = useContext(AuthContext);
 
+  const token = JSON.parse(user);
+
   useEffect(() => {
     getNote();
   }, [id]);
 
   let getNote = async () => {
     if (id === "new") return;
-
-    let response = await fetch(`/api/notes/${id}/`);
+    let response = await fetch(`/get-Note/${id}`);
     let data = await response.json();
-    setNote(data);
+    console.log(data);
+    setNote(data.myNote);
   };
 
   let createNote = async () => {
-    fetch(`/api/notes/`, {
+    fetch(`/add-Note`, {
       method: "POST",
       headers: {
+        Accept: "application/json",
         "Content-Type": "application/json",
       },
-      body: JSON.stringify({ ...note, "createdBy": `${user.email}` }),
+      body: JSON.stringify({ token: token, title: note.title }),
     })
       .then((response) => {
         if (response.ok) {
@@ -60,12 +63,13 @@ const NotePage = () => {
   };
 
   let updateNote = async () => {
-    fetch(`/api/notes/${id}/`, {
+    fetch(`/update-Note/${id}/`, {
       method: "PUT",
       headers: {
+        Accept: "application/json",
         "Content-Type": "application/json",
       },
-      body: JSON.stringify(note),
+      body: JSON.stringify({ title: note.title }),
     })
       .then((response) => {
         if (response.ok) {
@@ -75,10 +79,10 @@ const NotePage = () => {
         }
       })
       .then((resJson) => {
-        // addToast(`Note Updated 👍`,{
-        //   appearance:"success",
-        //   autoDismiss:true
-        // })
+        addToast(`Note Updated 👍`, {
+          appearance: "success",
+          autoDismiss: true,
+        });
       })
       .catch((error) => {
         addToast(error, {
@@ -88,15 +92,16 @@ const NotePage = () => {
       });
   };
   let deleteNote = async () => {
-    fetch(`/api/notes/${id}/`, {
+    fetch(`/delete-Note/${id}`, {
       method: "DELETE",
       headers: {
+        Accept: "application/json",
         "Content-Type": "application/json",
       },
-      // body: JSON.stringify(note),
     })
       .then((response) => {
         if (response.ok) {
+          
           return response.json();
         } else {
           throw new Error("Somthing went wrong!");
@@ -114,7 +119,7 @@ const NotePage = () => {
           autoDismiss: true,
         });
       });
-    history("/");
+      history('/');
   };
 
   let handleSubmit = () => {
@@ -143,9 +148,9 @@ const NotePage = () => {
       </div>
       <textarea
         onChange={(e) => {
-          setNote({ ...note, body: e.target.value });
+          setNote({ title: e.target.value });
         }}
-        value={note?.body}
+        value={note?.title}
       ></textarea>
     </div>
   );

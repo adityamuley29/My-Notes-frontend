@@ -1,4 +1,3 @@
-import jwtDecode from "jwt-decode";
 import React, { createContext, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useToasts } from "react-toast-notifications";
@@ -7,22 +6,12 @@ const AuthContext = createContext();
 
 export default AuthContext;
 
-// const INITIAL_DATA = {
-//   name: "",
-//   email: "",
-//   password: "",
-// };
-
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(() =>
-    localStorage.getItem("authToken")
-      ? JSON.parse(localStorage.getItem("authToken"))
-      : null
+    localStorage.getItem("userId") ? localStorage.getItem("userId") : null
   );
   const [authToken, setAuthToken] = useState(
-    localStorage.getItem("authToken")
-      ? jwtDecode(localStorage.getItem("authToken"))
-      : null
+    localStorage.getItem("userId") ? localStorage.getItem("userId") : null
   );
   const { addToast } = useToasts();
   const history = useNavigate();
@@ -31,21 +20,20 @@ export const AuthProvider = ({ children }) => {
 
   const registerUserHandeler = async (e) => {
     e.preventDefault();
-    const response = await fetch("/api/register/", {
+    const response = await fetch("/auth/register", {
       method: "POST",
       headers: {
-        Authorization: localStorage.getItem("authToken")
-          ? "JWT " + localStorage.getItem("authToken")
-          : null,
+        Accept: "application/json",
         "Content-Type": "application/json",
-        accept: "application/json",
       },
       body: JSON.stringify({
-        name: e.target.name.value,
         email: e.target.email.value,
+        username: e.target.name.value,
         password: e.target.password.value,
+        confirmPassword: e.target.password.value,
       }),
     });
+
 
     if (response.status === 200) {
       addToast(`Registration Successfull 🥳`, {
@@ -66,7 +54,7 @@ export const AuthProvider = ({ children }) => {
   let loginUser = async (e) => {
     e.preventDefault();
     console.log("form submitted");
-    let response = await fetch("/api/token/", {
+    let response = await fetch("/auth/login", {
       method: "POST",
       headers: {
         Accept: "application/json",
@@ -78,12 +66,13 @@ export const AuthProvider = ({ children }) => {
       }),
     });
     let data = await response.json();
+    let user = data.user
     if (response.status === 200) {
-      setAuthToken(data);
-      setUser(jwtDecode(data.access));
-      // console.log(data.access);
+      setAuthToken(user.id);
+      setUser(user.id);
 
-      localStorage.setItem("authToken", JSON.stringify(data));
+      localStorage.setItem("userId", JSON.stringify(user.id));
+      localStorage.setItem("user",JSON.stringify(user))
 
       addToast(`You are now logged in 👍`, {
         appearance: "success",
@@ -97,13 +86,14 @@ export const AuthProvider = ({ children }) => {
       });
     }
   };
+  console.log(user);
 
   // logout user
 
   let logoutUser = () => {
     setAuthToken(null);
     setUser(null);
-    localStorage.removeItem("authToken");
+    localStorage.removeItem("userId");
     history("/login");
   };
 

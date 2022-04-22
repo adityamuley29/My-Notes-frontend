@@ -1,37 +1,37 @@
-import jwtDecode from "jwt-decode";
 import React, { useContext, useEffect, useState } from "react";
 import AddButton from "../components/AddButton";
 import ListItem from "../components/ListItem";
 import AuthContext from "../context/AuthContext";
+import Spinner from "../components/spinner";
 
 const NotesListPage = () => {
   const [notes, setNotes] = useState([]);
   const { user } = useContext(AuthContext);
+  let [loading, setLoading] = useState(false);
 
-
-  // const currentUser = jwtDecode(user.access);
+  const token = JSON.parse(user);
 
   useEffect(() => {
     getNotes();
   }, []);
 
-
-  let getNotes = async () => {
-    // let response = await fetch("/api/notes/");
-
-    let response = await fetch(`/api/fiternotes/`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({ createdBy: `${user.email}` }),
-    });
-
-    let data = await response.json();
-    // let filteredData = data.filter(data =>currentUser.email[0] === data.createdBy)
-    // console.log(currentUser);
-    // console.log(data);
-    setNotes(data);
+  const getNotes = async () => {
+    try {
+      setLoading(true);
+      const response = await fetch(`/get-Notes/${token}`, {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+          Accept: "application/json",
+          token: `${user}`,
+        },
+      });
+      const data = await response.json();
+      setNotes(data.myNotes);
+      setLoading(false);
+    } catch (error) {
+      console.log(error);
+    }
   };
   return (
     <div className="notes">
@@ -40,9 +40,11 @@ const NotesListPage = () => {
         <p className="notes-count">{notes.length}</p>
       </div>
       <div className="notes-list">
-        {notes.map((note, index) => (
-          <ListItem key={index} note={note} />
-        ))}
+        {loading ? (
+          <div className="spinner-container"><Spinner loading={loading} /></div>
+        ) : (
+          notes.map((note, index) => <ListItem key={index} note={note} />)
+        )}
       </div>
       <AddButton />
     </div>
